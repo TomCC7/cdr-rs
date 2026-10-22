@@ -120,7 +120,7 @@ pub fn deserialize<'de, T>(bytes: &[u8]) -> Result<T>
 where
     T: serde::Deserialize<'de>,
 {
-    deserialize_from::<_, _, _>(bytes, Infinite)
+    deserialize_from::<_, _, _>(bytes, Bounded(bytes.len() as u64))
 }
 
 /// Deserializes an object directly from a `Read`.
