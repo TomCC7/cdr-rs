@@ -29,6 +29,11 @@ fn bounded_string_rejects_length_before_allocating() {
     let result = cdr::deserialize_from::<_, String, _>(bytes.as_slice(), cdr::Bounded(8));
     assert!(matches!(result, Err(cdr::Error::SizeLimit)));
     assert_eq!(LARGE_ALLOCATIONS.load(Ordering::Relaxed), before);
+    assert!(matches!(
+        cdr::deserialize::<String>(&bytes),
+        Err(cdr::Error::SizeLimit)
+    ));
+    assert_eq!(LARGE_ALLOCATIONS.load(Ordering::Relaxed), before);
 }
 
 #[test]
