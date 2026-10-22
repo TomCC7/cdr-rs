@@ -60,18 +60,19 @@ where
     }
 
     fn read_string(&mut self) -> Result<String> {
-        String::from_utf8(self.read_vec().map(|mut v| {
-            v.pop(); // removes a terminating null character
-            v
-        })?)
-        .map_err(|e| Error::InvalidUtf8Encoding(e.utf8_error()))
+        let mut bytes = self.read_vec()?;
+        if bytes.pop() != Some(0) {
+            return Err(Error::Message(
+                "CDR string must end with a null byte".into(),
+            ));
+        }
+        String::from_utf8(bytes).map_err(|e| Error::InvalidUtf8Encoding(e.utf8_error()))
     }
 
     fn read_vec(&mut self) -> Result<Vec<u8>> {
         let len: u32 = de::Deserialize::deserialize(&mut *self)?;
-        let mut buf = Vec::with_capacity(len as usize);
-        buf.resize(len as usize, 0);
         self.read_size(u64::from(len))?;
+        let mut buf = vec![0; len as usize];
         self.reader.read_exact(&mut buf[..])?;
         Ok(buf)
     }
